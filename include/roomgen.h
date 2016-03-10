@@ -1,9 +1,9 @@
 /**
  *Author: Giuliano Sovernigo 0948924
  *
- *DUE: 2/14/2016
+ *DUE: 3/13/2016
  *
- *Project A2, CIS*2500_W16
+ *Project A3, CIS*2500_W16
  *
  *  This header file contains functions and structs that are used
  *in a rogue-like terminal game.  The struct defined represents a

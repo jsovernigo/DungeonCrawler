@@ -1,9 +1,9 @@
 /**
  *Author: Giuliano Sovernigo 0948924
  *
- *DUE: 2/17/2016
+ *DUE: 3/13/2016
  *
- *Project A2, CIS*2500_W16
+ *Project A3, CIS*2500_W16
  *
  *  This file contains the function code for the fucntion
  *definitions in entities.h.  These functions manipulate the
@@ -301,7 +301,7 @@ Player* initPlayer(char* name)
     player->x = 0;
     player->y = 0;
     player->room = 1;
-    player->potions = 0;
+    player->potions = 1;
     player->attack = 5;
     player->items = 0;
 

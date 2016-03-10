@@ -1,9 +1,9 @@
 /**
  *Author: Giuliano Sovernigo 0948924
  *
- *DUE: 2/17/2016
+ *DUE: 3/13/2016
  *
- *Project A2, CIS*2500_W16
+ *Project A3, CIS*2500_W16
  *
  *  This header file contains the definition of the functions
  *and structs that are used in a rogue-like terminal game.
@@ -180,6 +180,9 @@ Enemy* initEnemy(char type, int y, int x);
  *initItem
  *This function allocates and initializes an item struct.
  *IN:   a character representing the type of item.
+ *OUT:  a new item pointer or null
+ *POST: new memory allocated.
+ *ERROR:malloc fails
  */
 Item* initItem(char type);
 

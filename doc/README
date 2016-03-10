@@ -1,8 +1,8 @@
 *************************************************
 Julian Sovernigo            0948924
 gsoverni@mail.uoguelph.ca
-CIS2500_W16                 A2: Rogue-Like
-2/17/2016
+CIS2500_W16                 A3: Rogue-Like-Extension
+3/13/2016
 *************************************************
 
 ******************
@@ -32,6 +32,7 @@ Running the program
     where <levelFile> is a path to the text description of the level
 2- use w, a, s, d, to move around.  Use 'q' to quit, any other action causes your player
     to stumble and requires you to move again. (yes, this WASTES YOUR TURN.  Be precise.)
+3- walking into an enemy damages them. Beware, as they can attack you if they are faster!
 
 ********
 Testing
@@ -51,6 +52,19 @@ Result: Program reported a successful run, and game ran smoothly.  Collisions
 
 Test:   Program was tested with invalid file paths (generally)
 Result: Program reported errors with input files.
+
+Test:   Program was run under normal conditions, and various non-legal actions were attempted:
+        action: attempting to leave the room through doors
+        result: player cannot advance
+        
+        action: attempting to leave from hallway
+        result: player cannot advance
+    
+        action: invalid keys are pressed
+        result: player loses his turn.
+
+        action: player attempts to stand on an enemy
+        result: combat event triggered; player cannot advance.
 
 
 ************

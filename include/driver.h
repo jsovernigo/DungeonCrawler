@@ -1,9 +1,9 @@
 /**
  *Author: Giuliano Sovernigo 0948924
  *
- *DUE: 2/17/2016
+ *DUE: 3/13/2016
  *
- *Project A2, CIS*2500_W16
+ *Project A3, CIS*2500_W16
  *
  *  This file contains the definitions for functions that
  *are used in a rogue-like terminal game.  Their implementation
@@ -82,6 +82,16 @@ int enemyMove(Enemy* enemy);
 
 
 /**
+ *exit
+ *This function exits the game, printing the victory message (or death)
+ *IN:   the player and the win condition
+ *OUT:  N/A
+ *POST: screen has been cleared and the message has been written.
+ *ERROR:player is NULL.
+ */
+void gameOver(Player* player, int win);
+
+/**
  *findPlayer
  *locates the player that was drawn on the map, and then moves the cursor to it.
  *IN:   N/A
@@ -131,7 +141,7 @@ Map* readMap(char *fname, int* numEnemies);
  *play
  *this is the main play function.  It loops and performs the game actions.
  *IN:   a map pointer, and the player pointer.
- *OUT:  the amount of gold that the player collectd.
+ *OUT:  1 on win, 0 on loss -1 on error (null structs)
  *POST: the game will have been played, and information will have been
  *      written to the ncurses terminal
  *ERROR:N/A

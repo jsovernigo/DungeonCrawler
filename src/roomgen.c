@@ -1,9 +1,9 @@
 /**
  *Author: Giuliano Sovernigo 0948924
  *
- *DUE 2/14/2016
+ *DUE 3/13/2016
  *
- *Project A2, CIS*2500_W16
+ *Project A3, CIS*2500_W16
  *
  *  This c file contains the implementation for the functions
  *defined in the roomgen.h file.  These functions are used to
@@ -204,15 +204,18 @@ Room* initRoom(int length, int width, int paramc, char *params[])
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"g%2d,%2d", &x, &y);
-            room->contents[y][x] = '*';
+            sscanf(params[i],"g%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = '*';
+            }
         }
         else if(params[i][0] == 'G' && length >= 4)
         {
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"G%2d,%2d", &x, &y);
+            sscanf(params[i],"G%2d,%2d", &y, &x);
             room->contents[y][x] = '8';
         }
         else if(params[i][0] == 'w' && length >= 4)
@@ -220,24 +223,33 @@ Room* initRoom(int length, int width, int paramc, char *params[])
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"w%2d,%2d", &x, &y);
-            room->contents[y][x] = ')';
+            sscanf(params[i],"w%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = ')';
+            }
         }
         else if(params[i][0] == 'W' && length >= 4)
         {
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"W%2d,%2d", &x, &y);
-            room->contents[y][x] = '(';
+            sscanf(params[i],"W%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = '(';
+            }
         }
         else if(params[i][0] == 'e' && length >= 4)
         {
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"e%2d,%2d", &x, &y);
-            room->contents[y][x] = ']';
+            sscanf(params[i],"e%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = ']';
+            }
         } 
         else if(params[i][0] == 'm' && length >= 4)
         {
@@ -269,48 +281,66 @@ Room* initRoom(int length, int width, int paramc, char *params[])
 
             x = 0;
             y = 0;
-            sscanf(params[i],"m%2d,%2d", &x, &y);
-            room->contents[y][x] = symb;
+            sscanf(params[i],"m%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = symb;
+            }
         }
         else if(params[i][0] == 'M' && length >= 4)
         {
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"M%2d,%2d", &x, &y);
-            room->contents[y][x] = 'T';
+            sscanf(params[i],"M%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = 'T';
+            }
         }
         else if(params[i][0] == 'p' && length >= 4)
         {
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"p%2d,%2d", &x, &y);
-            room->contents[y][x] = '!';
+            sscanf(params[i],"p%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = '!';
+            }
         }
         else if(params[i][0] == 'h' && length >= 4)
         {
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"h%2d,%2d", &x, &y);
-            room->contents[y][x] = '@';
+            sscanf(params[i],"h%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = '@';
+            }
         }
         else if(params[i][0] == 'z' && length >= 4)
         {
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"z%2d,%2d", &x, &y);
-            room->contents[y][x] = '<';
+            sscanf(params[i],"z%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = '<';
+            }
         }
         else if(params[i][0] == 'a' && length >= 4)
         {
             int x, y;
             x = 0;
             y = 0;
-            sscanf(params[i],"a%2d,%2d", &x, &y);
-            room->contents[y][x] = '>';
+            sscanf(params[i],"a%2d,%2d", &y, &x);
+            if(y < room->length-2 && x < room->width-2)
+            {
+                room->contents[y][x] = '>';
+            }
         }
     }
 

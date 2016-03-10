@@ -2,7 +2,7 @@
  *  Giuliano Sovernigo (2016)
  *  gsoverni@mail.uoguelph.ca
  *
- *  This file contains the main function for assignment 2 in
+ *  This file contains the main function for assignment 3 in
  *  UoGuelph's CIS*2500_W16 course.  The program itself is a
  *  game, similar to bsdGames' Rogue.
  *
@@ -28,8 +28,8 @@
 int main(int argc, char *argv[])
 {
     int result;
+    int win;
     int* numEnemies;
-    char message[50];
 
     Map* map;
     Player* player;
@@ -80,11 +80,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    play(map, player, enemies, numEnemies); // game loop
+    win = play(map, player, enemies, numEnemies); // game loop
 
-    strcpy(message, "Congratulations, you found ");
-    sprintf(message + strlen(message), "%d gold in the dungeon.", player->gold);
-    printMessage(message); //print the win message
+    gameOver(player, win);
     
     getch(); // wait for the input to end the game
 

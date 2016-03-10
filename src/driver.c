@@ -1,9 +1,9 @@
 /**
  *Author: Giuliano Sovernigo 0948924
  *
- *DUE: 2/14/2016
+ *DUE: 3/13/2016
  *
- *Project A2, CIS*2500_W16
+ *Project A3, CIS*2500_W16
  *
  *  This file contains the implementation of the functions
  *defined in the driver.h file.  These functions are used to
@@ -303,6 +303,49 @@ int enemyMove(Enemy* enemy)
 }
 
 
+void gameOver(Player* player, int win)
+{
+    int defence;
+    int attack;
+    int i;
+
+    if(player == NULL)
+    {
+        return;
+    }
+
+    attack = 0;
+    defence = 0;
+
+    for(i = 0; i < player->items; i++) // loop through the players items to sum their values
+    {
+        if(player->inv[i]->type == ']') // this item is equiptment
+        {
+            defence += player->inv[i]->value;
+        }
+        else // this item is a weapon
+        {
+            attack += player->inv[i]->value;
+        }
+    }
+    
+    clear();
+
+    if(win == 0)
+    {
+        mvprintw(0,0,"Slowly, quietly, you die in the dungeon.");
+    }
+    else
+    {
+        mvprintw(0,0,"Gloriously, you leave the dungeon, seeing sunlight for the first time in hours.");
+    }
+
+    
+    mvprintw(1,0,"You collected %d gold.\nYour equiptment totaled:\nDefence: %d\nAttack: %d\n", player->gold, defence, attack);
+    return;
+}
+
+
 void findPlayer()
 {
     int i;
@@ -444,6 +487,7 @@ int moveTo(Map* map, Player* player, Enemy* enemies[], int* numEnemies, char com
         if(tile == '#')
         {
             player->standingOn = '#';
+            printMessage("");
         }
         else // anything but a hallway (consumable)
         {
@@ -675,6 +719,8 @@ int play(Map* map, Player* player, Enemy* enemies[], int* numEnemies)
 {
     char input;
 
+    int win;
+
     input = ' ';
 
     do // loop while we don't quit.
@@ -725,11 +771,19 @@ int play(Map* map, Player* player, Enemy* enemies[], int* numEnemies)
         {
             enemyMove(enemies[i]); // move specific enemy.
         }
+        if(player->health < 1)
+        {
+            win = 0;
+
+            return win;
+        }
         refresh(); // draw the screen.
 
     }while(input != 'q');
 
-    return player->gold;
+    win = 1;
+
+    return win;
 }
 
 
