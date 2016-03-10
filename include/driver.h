@@ -27,18 +27,6 @@
 
 
 /**
- *changeRoom
- *This function is used to move the player to a new room on the map
- *IN:   map, the map that exists on the screen, and the player to move
- *OUT:  1 on successful room change, 0 on failure, -1 on error.
- *POST: player->room was modified, the cursor has been moved, and the
- *      player on the map has been moved.
- *ERROR:map or player is invalid.
- */
-int changeRoom(Map* map, Player* player);
-
-
-/**
  *cleanup
  *deletes the structures that are used in the game.  Cleans up the window.
  *IN:   map and player, the game structures to be freed
@@ -46,7 +34,29 @@ int changeRoom(Map* map, Player* player);
  *POST: map and player have been invalidated, ncurses has been terminated.
  *ERROR:no ncurses mode has been declared.
  */
-int cleanup(Map* map, Player* player);
+int cleanup(Map* map, Player* player, Enemy* enemies[], int* numEnemies);
+
+
+/**
+ *combat
+ *this function models combat between two structs.
+ *IN:   player and enemy, the two structs that will fight.
+ *OUT:  returns -1 on error, 0 on successful combat, and 1 on combat with victory
+ *POST: player->health or enemy->health have been decreased.
+ *ERROR:player or enemy are null (-1 returned)
+ */
+int combat(Player* player, Enemy* enemy);
+
+
+/**
+ *drawHalls
+ *This function draws hallways to stdscr, such that all doors are hallway'd.
+ *IN:   a pointer to the map that has been drawn to the field.
+ *OUT:  0 on success, 1 on failure.
+ *POST: hallways have been drawn to stdscr.
+ *ERROR:map is invalid.
+ */
+int drawHalls(Map* map);
 
 
 /**
@@ -57,7 +67,18 @@ int cleanup(Map* map, Player* player);
  *POST: player->x, player->y have been modified.
  *ERROR:map or player are invalid (returns -1)
  */
-int drawMap(Map* map, Player* player);
+int drawMap(Map* map, Player* player, Enemy* enemies[], int* numEnemies);
+
+
+/**
+ *enemyMove
+ *this function causes the enemy to move.
+ *IN:   the enemy to be moved
+ *OUT:  0 on success, -1 on error
+ *POST: enemy->x and enemy->y have been altered.
+ *ERROR:enemy is null
+ */
+int enemyMove(Enemy* enemy);
 
 
 /**
@@ -72,27 +93,38 @@ void findPlayer();
 
 
 /**
+ *kill
+ *This function kills an enemy, and removes it from the screen.
+ *IN:   the enemy array, the number of enemies, and the enemy itself.
+ *OUT:  -1 on error, 0 on success.
+ *POST: enemy has been deleted, numEnemies has been decreased, enemies has been reordered, and has had an entitiy removed.
+ *ERROR:any of the parameters are NULL
+ */
+int kill(Enemy* enemies[], int* numEnemies, Enemy* enemy);
+
+
+/**
  *moveTo
  *moves the player to a new location, as specifed by command
- *IN:   the map, the player, and a command character
+ *IN:   the map, the player, and a command character, enemies the enemy array and the number of enemies.
  *OUT:  1 on successful move, 0 on successful move with a win
  *      condition, and -1 for a failed move.
  *POST: cursor has been moved as as the player to a new spot
  *ERROR:map or player are NULL.
  */
-int moveTo(Map* map, Player* p, char command);
+int moveTo(Map* map, Player* p, Enemy* enemies[], int* numEnemies, char command);
+
 
 /**
  *readMap
  *this function takes in a file name and generates a map struct
  *  based off of its specifications.
- *IN:   the file path string.
+ *IN:   the file path string, and an integer pointer that will get all the enemies.
  *OUT:  the malloced Map pointer, or NULL on error.
- *POST: a Map struct pointer has been malloc'd (so free it)
+ *POST: a Map struct pointer has been malloc'd (so free it), and numEnemies has been set
  *ERROR:fname is invalid, or malloc failed to initialize map
  */
-Map* readMap(char *fname);
-
+Map* readMap(char *fname, int* numEnemies);
 
 
 /**
@@ -104,7 +136,8 @@ Map* readMap(char *fname);
  *      written to the ncurses terminal
  *ERROR:N/A
  */
-int play(Map* map, Player* player);
+int play(Map* map, Player* player, Enemy* enemies[], int* numEnemies);
+
 
 /**
  *printMessage
@@ -119,6 +152,17 @@ int printMessage(char* msg);
 
 
 /**
+ *printStats
+ *This function is used to print the player's stats to the bottom row of the screen
+ *IN:   the player struct whose stats will be printed
+ *OUT:  the number of characters written or -1 on failure.
+ *POST: a new line of text has been written to the bottom of the screen
+ *ERROR:player is null (returns -1);
+ */
+int printStats(Player* player);
+
+
+/**
  *setup
  *This function sets up the required structs
  *IN:   N/A
@@ -126,7 +170,17 @@ int printMessage(char* msg);
  *POST: terminal has been set to ncurses mode.
  *ERROR:initscr failed.
  */
-int setup(Map* map, Player* player);
+int setup(Map* map, Player* player, Enemy* enemies[], int* numEnemies);
+
+/**
+ *spawnHall
+ *this function takes a y,x of a door, and a char for which face its on, then spawns a hallway.
+ *IN:   doorY, doorX, the coordinates of the door, and face, either n,s,w,e.
+ *OUT:  0 on success, -1 on failure.
+ *POST: hallways have been written to stdscr.
+ *ERROR:doorX and doorY are out of bounds, or face is not n,s,e,w.
+ */
+int spawnHall(int doorY, int doorX, char face);
 
 
 #endif

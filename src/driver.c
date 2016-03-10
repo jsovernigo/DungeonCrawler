@@ -16,83 +16,12 @@
 #include "driver.h"
 
 
-int changeRoom(Map* map, Player* player)
+int cleanup(Map* map, Player* player, Enemy* enemies[], int* numEnemies)
 {
-    int newRoom;
-
-    int oldX;
-    int oldY;
-
-    int nRoomOriginX;
-    int nRoomOriginY;
-
     int i;
-    int j;
 
-    char message[50];
-    memset(message, '\0', 50);
+    endwin();
 
-
-    if(map == NULL || player == NULL)
-    {       
-        return -1;
-    }   
-
-
-    nRoomOriginX = 1;
-    nRoomOriginY = 2;
-
-    getyx(stdscr, oldY, oldX);
-
-    if(player->room == 6) // we have to loop back to the beginning
-    {
-        newRoom = 1;
-        player->room = newRoom;
-    }
-    else
-    {
-        newRoom = player->room + 1;
-        player->room = newRoom;
-    }
-    if(newRoom > 3) // we are on the second row of rooms.
-    {
-        nRoomOriginY += 21;
-        nRoomOriginX += 26 * (newRoom - 4);
-    }
-    else // we are on the first row of rooms, so the y origin of the rooms will be the same
-    {
-        nRoomOriginX += 26 * (newRoom - 1);
-    }
-
-    
-    strcpy(message, "New Room: ");
-    sprintf(message + strlen(message), "%d", newRoom);
-
-    printMessage(message);
-
-
-    for(i = 0; i < map->rooms[player->room - 1]->width + 2; i++) // loop the cols as defined
-    {
-        for(j = 0; j < map->rooms[player->room - 1]->length + 2; j++) // loop along the rows
-        {
-            char tile;
-            tile = mvinch(nRoomOriginY + j, nRoomOriginX + i);
-            if(tile == '+')
-            {
-                mvaddch(oldY, oldX, player->standingOn);
-                mvaddch(nRoomOriginY + j, nRoomOriginX + i, '@');
-                move(nRoomOriginY + j, nRoomOriginX + i);
-                player->standingOn = '+';
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
-
-int cleanup(Map* map, Player* player)
-{
     if(map)
     {
         delMap(map);
@@ -101,13 +30,145 @@ int cleanup(Map* map, Player* player)
     {
         delPlayer(player);
     }
-    endwin();
+
+    for(i = 1; i < *numEnemies; i++) // loop through the enemy array
+    {
+        delEnemy(enemies[i]);
+    }
+    free(numEnemies);
 
     return 0;
 }
 
 
-int drawMap(Map* map, Player* player)
+int combat(Player* player, Enemy* enemy)
+{
+    char enemyName[15];
+
+    switch(enemy->symbol)
+    {
+        case('A'):
+            strcpy(enemyName, "Aquator");
+            break;
+        case('B'):
+            strcpy(enemyName, "Bat");
+            break;
+        case('S'):
+            strcpy(enemyName, "Snake");
+            break;
+        case('Z'):
+            strcpy(enemyName, "Zombie");
+            break;
+        case('T'):
+            strcpy(enemyName, "Troll");
+            break;
+        default:
+            strcpy(enemyName, "Unknown");
+            break;
+    }
+
+    if(getSpeed() > enemy->speed)
+    {
+        int damage;
+        char message[50];
+        memset(message, '\0', 50);
+        damage = dealDamage(player, enemy);
+        sprintf(message, "Player deals %d damage to the %s.", damage, enemyName);
+        printMessage(message);
+
+    }
+    else // enemy gets to attack
+    {
+        if(enemy->symbol == 'A') // that means that the enemy is an aquator
+        {
+            player->attack -= enemy->attack;
+            if(player->attack < 1) // make sure that the player has at least SOME attack.
+            {
+                player->attack = 1;
+            }
+            printMessage("The Aquator sprays the player, decreasing his attack by 1.");
+        }
+        else // not an aquator
+        {
+            int damage;
+            char message[50];
+            memset(message, '\0', 50);
+            damage = takeDamage(player, enemy);
+            sprintf(message, "The %s deals %d damage to the Player", enemyName, damage);
+            printMessage(message);
+        }
+    }
+
+    if(enemy->health > 0)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+
+int drawHalls(Map* map)
+{
+    int room;
+    int i;
+
+
+    if(map == NULL)
+    {
+        return -1;
+    }
+
+    room = 0;
+    i = 0;
+
+    for(i = 0; i < 79; i++) // this creates the centre hallway.
+    {
+        mvaddch(22, i, '#');
+    }
+
+    for(room = 0; room < map->roomc; room++) // loop through the rooms.
+    {
+        int doorX;
+        int doorY;
+
+
+        doorX = 0;
+        doorY = 0;
+
+
+        doorY = map->rooms[room]->yOrg;
+        for (doorX = map->rooms[room]->xOrg; doorX < map->rooms[room]->xOrg + map->rooms[room]->width; doorX++) // North Face + South Face
+        {
+            if (mvinch(doorY, doorX) == '+')
+            {
+                spawnHall(doorY, doorX, 'n');
+            }
+            if (mvinch(doorY + map->rooms[room]->length - 1, doorX) == '+')
+            {
+                spawnHall(doorY + map->rooms[room]->length - 1, doorX, 's');
+            }
+        }
+
+        doorX = map->rooms[room]->xOrg;
+
+        for(doorY = map->rooms[room]->yOrg; doorY < map->rooms[room]->yOrg + map->rooms[room]->width; doorY++) // east and west faces.
+        {
+            if(mvinch(doorY, doorX) == '+')
+            {
+                spawnHall(doorY, doorX, 'w');
+            }
+            if(mvinch(doorY, doorX + map->rooms[room]->width - 1) == '+')
+            {
+                spawnHall(doorY, doorX + map->rooms[room]->width - 1, 'e');
+            }
+        }
+    }
+    return 0;
+}
+
+
+int drawMap(Map* map, Player* player, Enemy* enemies[], int* numEnemies)
 {
     int artOriginX;
     int artOriginY;
@@ -117,6 +178,8 @@ int drawMap(Map* map, Player* player)
     int i;
     int j;
 
+    int enemy;
+
     if(!map || !player)
     {
         return -1;
@@ -125,10 +188,15 @@ int drawMap(Map* map, Player* player)
     artOriginX = 1;
     artOriginY = 2;
 
+    enemy = 0;
+
     move(artOriginY, artOriginX);
 
     for(room = 0; room < map->roomc; room++) // loop through the rooms
     {
+        map->rooms[room]->xOrg = artOriginX;
+        map->rooms[room]->yOrg = artOriginY;
+
         for(i = 0; i < map->rooms[room]->length; i++) // then the rows
         {
             for(j = 0; j < map->rooms[room]->width; j++) // then the columns...
@@ -137,12 +205,17 @@ int drawMap(Map* map, Player* player)
                 {
                     mvaddch(artOriginY + i, artOriginX + j, '@'); // place the player
                     map->rooms[room]->contents[i][j] = '.'; // de-room him/her
-                    player->x = artOriginX;
-                    player->y = artOriginY;
+                    player->x = artOriginX + j;
+                    player->y = artOriginY + i;
                     player->room = room + 1; // this captures 1-6 instead of 0-5
                 }
                 else
                 {
+                    if(strchr("ABSZT", map->rooms[room]->contents[i][j]) != NULL)
+                    {
+                        enemies[enemy] = initEnemy(map->rooms[room]->contents[i][j], artOriginY + i, artOriginX + j);                    
+                        enemy++;
+                    }
                     mvaddch(artOriginY + i, artOriginX + j, map->rooms[room]->contents[i][j]); // draw a piece of the map.
                 }
             }
@@ -157,6 +230,74 @@ int drawMap(Map* map, Player* player)
             artOriginX = 1;
         }
     }
+
+    return 0;
+}
+
+
+int enemyMove(Enemy* enemy)
+{
+    char move;
+    int oldX;
+    int oldY;
+
+    if(enemy == NULL)
+    {
+        return -1;
+    }
+
+    getyx(stdscr, oldY, oldX);
+
+    move = cycle(enemy); // get the enemies move
+
+    if(move == 'R') // if we should move to a random location
+    {
+        int random;
+        char moves[] = "NEWS";
+        random = rand() % 4;
+        move = moves[random];
+    }
+
+    switch(move) // move in the direction specified
+    {
+        case('N'):
+            if(mvinch(enemy->y - 1, enemy->x) == '.')
+            {
+                mvaddch(enemy->y, enemy->x, '.');
+                enemy->y --;
+                mvaddch(enemy->y, enemy->x, enemy->symbol);
+            }
+
+            break;
+        case('S'):
+            if(mvinch(enemy->y + 1, enemy->x) == '.')
+            {
+                mvaddch(enemy->y, enemy->x, '.');
+                enemy->y ++;
+                mvaddch(enemy->y, enemy->x, enemy->symbol);
+            }
+            break;
+        case('E'):
+            if(mvinch(enemy->y, enemy->x + 1) == '.')
+            {
+                mvaddch(enemy->y, enemy->x, '.');
+                enemy->x ++;
+                mvaddch(enemy->y, enemy->x, enemy->symbol);
+            }
+            break;
+        case('W'):
+            if(mvinch(enemy->y, enemy->x - 1) == '.')
+            {
+                mvaddch(enemy->y, enemy->x, '.');
+                enemy->x --;
+                mvaddch(enemy->y, enemy->x, enemy->symbol);
+            }
+            break;
+        default:
+            break;
+    }
+
+    move(oldY, oldX); // restore cursor position
 
     return 0;
 }
@@ -186,7 +327,65 @@ void findPlayer()
 }
 
 
-int moveTo(Map* map, Player* player, char command)
+
+int kill(Enemy* enemies[], int* numEnemies, Enemy* enemy)
+{
+    int i;
+    int j;
+    char message[100];
+    char enemyName[15];
+    
+    if(enemies == NULL || numEnemies == NULL || enemy == NULL)
+    {
+        return -1;
+    }
+
+    switch(enemy->symbol)
+    {
+        case('A'):
+            strcpy(enemyName, "Aquator");
+            break;
+        case('B'):
+            strcpy(enemyName, "Bat");
+            break;
+        case('S'):
+            strcpy(enemyName, "Snake");
+            break;
+        case('Z'):
+            strcpy(enemyName, "Zombie");
+            break;
+        case('T'):
+            strcpy(enemyName, "Troll");
+            break;
+        default:
+            strcpy(enemyName, "Unknown");
+            break;
+    }
+
+    for(i = 0; i < *numEnemies; i ++)
+    {
+        if(enemy == enemies[i]) // compare their addresses.
+        {
+            *numEnemies = *numEnemies - 1;
+            for(j = i; j < *numEnemies; j++) // loop from where we found the match
+            {
+                enemies[j] = enemies[j + 1]; // shift every element back one.
+            } 
+            free(enemy); // free our killed enemy.
+            break;
+        }
+    }
+
+    memset(message, '\0', 100);
+    sprintf(message, "The %s dies, screaming.  You smile as it grows still", enemyName);
+    printMessage(message);
+
+    return 0;
+
+}
+
+
+int moveTo(Map* map, Player* player, Enemy* enemies[], int* numEnemies, char command)
 {
     int oldX;
     int oldY;
@@ -234,7 +433,7 @@ int moveTo(Map* map, Player* player, char command)
        allowable subset of room points.
        But it looks like crappy Regex.
        */
-    if(strchr(".*8()]!", tile) != NULL) 
+    if(strchr(".*8()]#!", tile) != NULL) 
     {        
         char message[50];
         memset(message, '\0', 50);
@@ -242,22 +441,87 @@ int moveTo(Map* map, Player* player, char command)
         mvaddch(oldY, oldX, player->standingOn); // replace the old tile
         mvaddch(newY, newX, '@'); // move the player
         move(newY, newX);
-        player->standingOn = '.';
-
-        if(tile == '*' || tile == '8') // we have stumbled upon a gold stash
+        if(tile == '#')
         {
-            int gold;
-            gold = addGold(player, tile);
-
-            strcpy(message, "Found a gold stash with ");
-            sprintf(message + strlen(message), "%d gold in it.", gold);
-            printMessage(message);
+            player->standingOn = '#';
         }
-        else
+        else // anything but a hallway (consumable)
         {
-            printMessage("");
+            if(tile == '!')
+            {
+                printMessage("Found a potion!  You clink it into your potion bag.");
+                addPotion(player);
+            }
+            else if(tile == '*' || tile == '8') // we have stumbled upon a gold stash
+            {
+                int gold;
+                gold = addGold(player, tile);
+
+                strcpy(message, "Found a gold stash with ");
+                sprintf(message + strlen(message), "%d gold in it.", gold);
+                printMessage(message);
+            }
+            else if(strchr("()]", tile) != NULL)
+            {
+                int added;
+                Item* item;
+                item = initItem(tile);
+                added = addItem(player, item);
+                if(added == 0)
+                {
+                    printMessage("You attempt to pick up the item. You fumble with your full bag. You shatter the item. Tool.");
+                }
+                else if(added == 1)
+                {
+                    if(tile == ')')
+                    {
+                        printMessage("You pick up a common weapon from the ground.");
+                    }
+                    else if(tile == '(')
+                    {
+                        printMessage("You pick up a rare, shiny weapon from the ground.");
+                    }
+                    else if(tile == ']')
+                    {
+                        printMessage("You pick up a piece of equiptment from the ground."); 
+                    }
+                }
+            }
+            else // else, clear the message.
+            {
+                printMessage("");
+            }
+            player->standingOn = '.';
+            return 1;
         }
-        return 1;
+    }
+    else if(strchr("ABSZT", tile))
+    {
+        int i;
+        for(i = 0; i < *numEnemies; i++)
+        {
+            if(enemies[i]->symbol == tile && enemies[i]->x == newX && enemies[i]->y == newY)
+            {
+                int result;
+                result = combat(player, enemies[i]);
+                if(result == 1)
+                {
+                    kill(enemies, numEnemies, enemies[i]);
+
+                    mvaddch(oldY, oldX, player->standingOn); // replace the old tile
+                    mvaddch(newY, newX, '@'); // move the player
+                    move(newY, newX);
+
+                    player->standingOn = '.';
+                    return 1;
+                }
+                else if(result == -1)
+                {
+                    return -1;
+                }
+            }
+        }
+        move(oldY, oldX);
     }
     else if(tile == '>' || tile == '<') // the stairs
     {
@@ -273,7 +537,7 @@ int moveTo(Map* map, Player* player, char command)
         mvaddch(newY, newX, '@');
         move(newY, newX);
         player->standingOn = '+';
-        changeRoom(map, player);
+        printMessage("Opened a door.  It creaked loudly.");
         return 1;
     }
     else // we are hitting something else... (a wall or monster, basically.
@@ -287,7 +551,7 @@ int moveTo(Map* map, Player* player, char command)
 }
 
 
-Map* readMap(char* fname)
+Map* readMap(char* fname, int* numEnemies)
 {
     int i;
     char line[256];
@@ -297,6 +561,8 @@ Map* readMap(char* fname)
     FILE* roomsFile;
 
     Room* rooms[6];
+
+    *numEnemies = 0;
 
     roomsFile = fopen(fname, "r");
     if(roomsFile == NULL) // make sure it exists, first off.
@@ -330,7 +596,7 @@ Map* readMap(char* fname)
         {
             if(line[j] == ' ') // if we found the first space.
             {
-                tStart = j+1; // this saves the position of where we want to start reading for arguments.
+                tStart = j + 1; // this saves the position of where we want to start reading for arguments.
                 break;
             }
             j++; // next char.
@@ -357,12 +623,16 @@ Map* readMap(char* fname)
             stop = 0;
             for(k = 0; k < 6; k++)
             {
+                if(strchr("mM",line[linePos]) != NULL)
+                {
+                    *numEnemies = *numEnemies + 1;
+                }
                 if(line[linePos] == '\n')
                 {
                     stop = 1;
                     break;
                 }
-                else if( line[linePos] == ' ') // separating character.
+                else if(line[linePos] == ' ') // separating character.
                 {
                     tokens[j][k] = '\0';
                     linePos++;
@@ -376,12 +646,11 @@ Map* readMap(char* fname)
             }
             if(stop == 1) // we have reached the end of the line (no new params)
             {
-                //free(tokens[j]);
                 break;
             }
             pos++;
         }
-        rooms[i] = initRoom(length, width, pos+1, tokens); // setup the rooms
+        rooms[i] = initRoom(length, width, pos + 1, tokens); // setup the rooms
 
         for(l = 0; l < pos + 1; l++)
         {
@@ -393,11 +662,16 @@ Map* readMap(char* fname)
 
     fclose(roomsFile);
 
+    if(*numEnemies >= 50)
+    {
+        printf("Too many monsters were found. Sending some to \"sleep with the fishes\"\n"); 
+    }
+
     return map;
 }
 
 
-int play(Map* map, Player* player)
+int play(Map* map, Player* player, Enemy* enemies[], int* numEnemies)
 {
     char input;
 
@@ -406,18 +680,50 @@ int play(Map* map, Player* player)
     do // loop while we don't quit.
     {
         int result;
+        int i;
 
         result = 0;
 
-        input = getch();
+        input = getch(); // get MOVE
 
         if(input != 'q')
         {
-            result = moveTo(map, player, input); // move, and see if it worked.
+            if(strchr("wasd",input))
+            {
+                result = moveTo(map, player, enemies, numEnemies, input); // move, and see if it worked.
+            }
+            else if(input == 'p')
+            {
+                int success;
+                success = consumePotion(player);
+                if(success == -1) // the player was null
+                {
+                    return -1;
+                }
+                else if(success == 0)
+                {
+                    printMessage("You drink a potion and feel amazingly refreshed.");
+                }
+                else
+                {
+                    printMessage("You try to drink a potion.  You have none.  You are sad.");
+                }
+                result = 1; // we have NOT WON THE GAME.
+            }
+            else
+            {
+                result = 1;
+            }
+            printStats(player);
         }
         if(result == 0) // if the moveTo returned the win condition basically
         {
             break;
+        }
+
+        for(i = 0; i < *numEnemies; i++) // loop through all enemies
+        {
+            enemyMove(enemies[i]); // move specific enemy.
         }
         refresh(); // draw the screen.
 
@@ -446,7 +752,34 @@ int printMessage(char* msg)
 }
 
 
-int setup(Map* map, Player* player)
+int printStats(Player* player)
+{
+    int result;
+    int oldX;
+    int oldY;
+    int maxX;
+    int maxY;
+
+    if(player == NULL)
+    {
+        return -1;
+    }
+
+    getmaxyx(stdscr, maxY, maxX); // result's value is thrown away later.
+
+    maxX = 0;
+    result = maxX;
+
+    getyx(stdscr, oldY, oldX); // save old positions
+
+    result = mvprintw(maxY - 1, 0, "Health: %d, Potions: %d, Attack: %d, Inv: %d/5", player->health, player->potions, player->attack, player->items);
+
+    move(oldY, oldX); // restore the cursor.
+    return result;
+}   
+
+
+int setup(Map* map, Player* player, Enemy* enemies[], int* numEnemies)
 {
     int x;
     int y;
@@ -467,13 +800,239 @@ int setup(Map* map, Player* player)
         return -1;
     }
 
-    drawMap(map, player); // draw the map to the screen and then record the player's position.
+    drawMap(map, player, enemies, numEnemies); // draw the map to the screen and then record the player's position.
+
+    drawHalls(map);
 
     noecho();
     curs_set(0); // this disables the cursor blinking.
     cbreak();
 
     findPlayer(); // move the cursor to the player's position.
+
+    printStats(player);
+
+
+    return 0;
+}
+
+
+int spawnHall(int doorY, int doorX, char face)
+{
+    int maxX;
+    int maxY;
+
+    int yDir;
+    int xDir;
+    int direction;
+
+
+    if(doorY > 22) // we are below the centre hallway...
+    {
+        yDir = -1;
+    }
+    else
+    {
+        yDir = 1;
+    }
+
+    getmaxyx(stdscr, maxY, maxX);
+    if(doorX < 0 || doorX > maxX || doorY < 0 || doorY > maxY) // check x,y bounds
+    {
+        return -1;
+    } 
+    if(strchr("nsew",face) == NULL) // if face is invalid
+    {
+        return -1;
+    }
+
+    direction = rand() % 2;
+    if(direction == 0)
+    {
+        xDir = -1;
+    }
+    else
+    {
+        xDir = 1;
+    }
+
+    /*
+       Basic summary of the following algorithm:
+       1) search the doors on the north face, trail to the centre,
+       then drop down to the centre hallway.
+       2) search the south wall, and then drop straight down.
+       3) search the west wall, go left (to next room, if there is one) then drop down.
+       4) search the east wall, go right (to the next room, if there is one) then drop.
+
+       direction chooses whether it goes left, right, or straight down.
+       */
+
+    if(face == 'n' && yDir == 1) // we do not have to worry about if the north face is on a south room.  The central hallway gets it.
+    {
+        int i;
+
+        int tracerX;
+        int tracerY;
+
+        tracerX = doorX;
+        tracerY = doorY - 1; // right above/below the room.
+
+        for(i = tracerX; i < maxX && i >= 0; i += xDir)
+        {
+            if(mvinch(tracerY + 1, i) != ' ') // check if there is still a wall down below us.
+            {
+                mvaddch(tracerY, i, '#');
+            }
+            else
+            {
+                mvaddch(tracerY, i, '#');
+                break;
+            }
+        }
+        tracerX = i;
+        i = tracerY;
+        while (i < maxY && mvinch(i + 1, tracerX) != '#') // loop down until you hit another (the central) hallway.
+        {
+            i ++;
+            mvaddch(i, tracerX, '#'); // draw a hall
+        }
+    }
+    else if (face == 's')
+    {
+        if (yDir == 1) // i.e., if this is a north side room
+        {
+            int i;
+
+            int tracerX;
+            int tracerY;
+
+            tracerX = doorX;
+            tracerY = doorY + 1;
+
+            for (i = tracerY; i < maxY; i++) // loop down until you hit a hallway
+            {
+                if (mvinch(i, tracerX) == ' ')
+                {
+                    mvaddch(i, tracerX, '#');
+                }
+                else // we hit something else
+                {
+                    break;
+                }
+            }
+        }
+        else if(yDir == -1) // we are in a south side room
+        {
+            int i;
+
+            int tracerX;
+            int tracerY;
+
+            tracerX = doorX;
+            tracerY = doorY + 1; // right above/below the room.
+
+            for(i = tracerX; i < maxX && i >= 0; i += xDir)
+            {
+                if(mvinch(tracerY - 1, i) != ' ') // check if there is still a wall down below us.
+                {
+                    mvaddch(tracerY, i, '#');
+                }
+                else
+                {
+                    mvaddch(tracerY, i, '#');
+                    break;
+                }
+            }
+            tracerX = i;
+            i = tracerY;
+            while (i < maxY && mvinch(i - 1, tracerX) != '#') // loop down until you hit another (the central) hallway.
+            {
+                i --;
+                mvaddch(i, tracerX, '#'); // draw a hall
+            }
+
+        }
+
+    }
+    else if(face == 'e')
+    {
+        int i;
+        int tracerX;
+        int tracerY;
+
+        tracerX = doorX + 1;
+        tracerY = doorY;
+
+        mvaddch(tracerY, tracerX, '#');
+
+        if(xDir == 1 && doorX < 50) 
+        {
+
+            for(i = tracerX + xDir; i < maxX && i > 0; i += xDir) // loop towards the room to the (xDir)
+            {
+                if(mvinch(tracerY, i) == ' ')
+                {
+                    addch('#');
+                } 
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        for(i = tracerY + yDir; i > 0 && i < maxY; i += yDir) // loop until we hit anything not blank.
+        {
+            if(mvinch(i, tracerX) == ' ')
+            {
+                addch('#');
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    else if(face == 'w')
+    {
+        int i;
+        int tracerX;
+        int tracerY;
+
+        tracerX = doorX - 1;
+        tracerY = doorY;
+
+        mvaddch(tracerY, tracerX, '#');
+
+        if(xDir == -1 && doorX > 1) // if we are going to be moving away from the room (and we arent the first rooms)
+        {
+
+            for(i = tracerX + xDir; i < maxX && i > 0; i += xDir) // loop towards the room to the (xDir)
+            {
+                if(mvinch(tracerY, i) == ' ')
+                {
+                    addch('#');
+                } 
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        for(i = tracerY + yDir; i > 0 && i < maxY; i += yDir) // loop until we hit anything not blank.
+        {
+            if(mvinch(i, tracerX) == ' ')
+            {
+                addch('#');
+            }
+            else
+            {
+                break;
+            }
+        }
+
+    }
 
     return 0;
 }

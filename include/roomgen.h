@@ -21,9 +21,10 @@
 
 struct room
 {
+    int xOrg;
+    int yOrg;
     int length;
     int width;
-    int roomNum;
     char **contents;
 };
 

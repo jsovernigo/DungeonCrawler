@@ -28,21 +28,26 @@
 int main(int argc, char *argv[])
 {
     int result;
+    int* numEnemies;
     char message[50];
 
     Map* map;
     Player* player;
+    Enemy* enemies[50];
 
     if(argc < 2) // check for argument requirements
     {
         printf("Incorrect usage.  Please use as:\n%s <levelFile>\n", argv[0]);
         return 1;
     }
+     
+    numEnemies = malloc(sizeof(int));
+    *numEnemies = 0;
 
     srand(time(NULL)); // seed the rand
 
     // init player and map
-    map = readMap(argv[1]);
+    map = readMap(argv[1], numEnemies);
     player = initPlayer("Hero");
 
     if(map == NULL && player == NULL) // both setups have gone wrong
@@ -65,17 +70,17 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    result = setup(map, player); // setup the game structures and initscr
+    result = setup(map, player, enemies, numEnemies); // setup the game structures and initscr
 
     if(result == -1) // great, that failed too.
     {
-        cleanup(map, player);
+        cleanup(map, player, enemies, numEnemies);
         printf("Uh oh! Something must have gone wrong.\nThe setup for the game failed.\nTry resizing your window.\n");
         perror("System setup failed with condition");
         return 1;
     }
 
-    play(map, player); // game loop
+    play(map, player, enemies, numEnemies); // game loop
 
     strcpy(message, "Congratulations, you found ");
     sprintf(message + strlen(message), "%d gold in the dungeon.", player->gold);
@@ -83,7 +88,7 @@ int main(int argc, char *argv[])
     
     getch(); // wait for the input to end the game
 
-    cleanup(map, player);
+    cleanup(map, player, enemies, numEnemies);
     
     return 0;
 }
