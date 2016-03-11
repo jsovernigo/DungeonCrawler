@@ -374,7 +374,6 @@ void findPlayer()
 int kill(Enemy* enemies[], int* numEnemies, Enemy* enemy)
 {
     int i;
-    int j;
     char message[100];
     char enemyName[15];
     
@@ -409,12 +408,15 @@ int kill(Enemy* enemies[], int* numEnemies, Enemy* enemy)
     {
         if(enemy == enemies[i]) // compare their addresses.
         {
+            int j;
+
             *numEnemies = *numEnemies - 1;
             for(j = i; j < *numEnemies; j++) // loop from where we found the match
             {
                 enemies[j] = enemies[j + 1]; // shift every element back one.
             } 
-            free(enemy); // free our killed enemy.
+            enemies[*numEnemies] = NULL;
+            delEnemy(enemy); // free our killed enemy.
             break;
         }
     }
@@ -514,6 +516,7 @@ int moveTo(Map* map, Player* player, Enemy* enemies[], int* numEnemies, char com
                 if(added == 0)
                 {
                     printMessage("You attempt to pick up the item. You fumble with your full bag. You shatter the item. Tool.");
+                    free(item);
                 }
                 else if(added == 1)
                 {

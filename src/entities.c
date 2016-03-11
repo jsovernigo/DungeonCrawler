@@ -166,7 +166,12 @@ void delEnemy(Enemy* enemy)
 
 void delPlayer(Player* player)
 {
+    int i;
     free(player->name);
+    for(i = 0; i < player->items; i++)
+    {
+        free(player->inv[i]);
+    }
     free(player);
     return;
 }

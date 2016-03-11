@@ -1,6 +1,6 @@
-15X11 dn9 de2 ds4 g8,6 W12,2 M6,2 a2,7 p2,3 e4,10
-12X8 ds4 dn4 de3 dw5 g1,6 m2,2 e2,4 w10,7 e8,8
+21X16 dn9 de2 ds4 g8,6 W12,2 M6,2 a2,7 p2,3 e4,10
+12X18 ds4 dn4 de3 dw5 g1,6 m2,2 e2,4 w10,7 e8,8
 10X9 de2 dn2 ds6 g3,4 w7,1 m6,3 m3,5 M2,3 z5,7
-10X12 de6 ds1 dn2 dw8 g8,6 g2,5 m3,8 m2,6
-7X7 de2 dw4 ds3 g4,5 m3,4 m5,5 m2,2 p3,5
-10x15 dn3 de4 dw9 ds8 g8,7 M3,4 M5,6 h6,5 p2,2
+15X12 de6 ds1 dn2 dw8 g8,6 g2,5 m3,8 m2,6 G7,11 w6,10
+7X7 de2 dw4 ds3 g4,5 m3,4 m5,5 m2,2 m5,6 m3,1 m1,5 m6,6 m5,1 p3,5
+20x19 dn3 de4 dw9 ds8 g8,7 M3,4 M5,6 h6,5 p2,2 w15,12 e6,15 p15,15

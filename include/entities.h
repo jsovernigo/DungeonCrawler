@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define PLAYER_MAX_HP 50
 #define AQUATOR_MOVESET ""
