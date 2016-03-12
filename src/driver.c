@@ -18,7 +18,6 @@
 
 int cleanup(Map* map, Player* player, Enemy* enemies[], int* numEnemies)
 {
-    int i;
 
     endwin();
 
@@ -31,11 +30,19 @@ int cleanup(Map* map, Player* player, Enemy* enemies[], int* numEnemies)
         delPlayer(player);
     }
 
-    for(i = 1; i < *numEnemies; i++) // loop through the enemy array
+   
+    if(numEnemies)
     {
-        delEnemy(enemies[i]);
+        int i;
+        for(i = 0; i < *numEnemies; i++) // loop through the enemy array
+        {
+            if(enemies[i])
+            {
+                delEnemy(enemies[i]);
+            }
+        }
+        free(numEnemies);
     }
-    free(numEnemies);
 
     return 0;
 }
@@ -134,10 +141,8 @@ int drawHalls(Map* map)
 
 
         doorX = 0;
-        doorY = 0;
-
-
         doorY = map->rooms[room]->yOrg;
+
         for (doorX = map->rooms[room]->xOrg; doorX < map->rooms[room]->xOrg + map->rooms[room]->width; doorX++) // North Face + South Face
         {
             if (mvinch(doorY, doorX) == '+')
@@ -230,6 +235,8 @@ int drawMap(Map* map, Player* player, Enemy* enemies[], int* numEnemies)
             artOriginX = 1;
         }
     }
+
+    *numEnemies = enemy;
 
     return 0;
 }
@@ -598,7 +605,7 @@ int moveTo(Map* map, Player* player, Enemy* enemies[], int* numEnemies, char com
 }
 
 
-Map* readMap(char* fname, int* numEnemies)
+Map* readMap(char* fname)
 {
     int i;
     char line[256];
@@ -608,8 +615,6 @@ Map* readMap(char* fname, int* numEnemies)
     FILE* roomsFile;
 
     Room* rooms[6];
-
-    *numEnemies = 0;
 
     roomsFile = fopen(fname, "r");
     if(roomsFile == NULL) // make sure it exists, first off.
@@ -670,10 +675,6 @@ Map* readMap(char* fname, int* numEnemies)
             stop = 0;
             for(k = 0; k < 6; k++)
             {
-                if(strchr("mM",line[linePos]) != NULL)
-                {
-                    *numEnemies = *numEnemies + 1;
-                }
                 if(line[linePos] == '\n')
                 {
                     stop = 1;
@@ -708,11 +709,6 @@ Map* readMap(char* fname, int* numEnemies)
     map = initMap(rooms, 6); // create the room itself (returned below)
 
     fclose(roomsFile);
-
-    if(*numEnemies >= 50)
-    {
-        printf("Too many monsters were found. Sending some to \"sleep with the fishes\"\n"); 
-    }
 
     return map;
 }
@@ -814,7 +810,6 @@ int printStats(Player* player)
     int result;
     int oldX;
     int oldY;
-    int maxX;
     int maxY;
 
     if(player == NULL)
@@ -822,10 +817,7 @@ int printStats(Player* player)
         return -1;
     }
 
-    getmaxyx(stdscr, maxY, maxX); // result's value is thrown away later.
-
-    maxX = 0;
-    result = maxX;
+    maxY = getmaxy(stdscr); // result's value is thrown away later.
 
     getyx(stdscr, oldY, oldX); // save old positions
 

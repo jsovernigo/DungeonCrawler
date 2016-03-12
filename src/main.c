@@ -47,19 +47,21 @@ int main(int argc, char *argv[])
     srand(time(NULL)); // seed the rand
 
     // init player and map
-    map = readMap(argv[1], numEnemies);
+    map = readMap(argv[1]);
     player = initPlayer("Hero");
 
     if(map == NULL && player == NULL) // both setups have gone wrong
     {
         printf("Uh oh! Something must have gone wrong.\nPlease make sure you entered a valid file path for the level file!\n");
         perror("Map and player setup failed with condition");
+        free(numEnemies);
         return 1;
     }
     else if(player == NULL) // player malloc has probably failed
     {
         perror("Something really weird happened.\nPlayer setup failed with condition");
         delMap(map);
+        free(numEnemies);
         return 1;
     }
     else if(map == NULL) // something went wrong with the definition in the file/malloc.
@@ -67,6 +69,7 @@ int main(int argc, char *argv[])
         printf("Uh oh! Something must have gone wrong.\nPlease make sure you entered a valid file path for the level file!\n");
         perror("Map setup failed with condition");
         delPlayer(player);
+        free(numEnemies);
         return 1;
     }
 

@@ -129,12 +129,12 @@ int moveTo(Map* map, Player* p, Enemy* enemies[], int* numEnemies, char command)
  *readMap
  *this function takes in a file name and generates a map struct
  *  based off of its specifications.
- *IN:   the file path string, and an integer pointer that will get all the enemies.
+ *IN:   the file path string.
  *OUT:  the malloced Map pointer, or NULL on error.
  *POST: a Map struct pointer has been malloc'd (so free it), and numEnemies has been set
  *ERROR:fname is invalid, or malloc failed to initialize map
  */
-Map* readMap(char *fname, int* numEnemies);
+Map* readMap(char *fname);
 
 
 /**

@@ -253,6 +253,8 @@ Item* initItem(char type)
 
     Item* item;
 
+    value = 0;
+
     item = malloc(sizeof(Item));
     if(item == NULL)
     {
